@@ -121,13 +121,10 @@ func (c *CustomsStatusTrace) SearchTracerUpdatesAndUpdatesDB() (bool, error) {
 		return false, fmt.Errorf("error getting data from db: %w", err)
 	}
 
-	msg := fmt.Sprintf("The package %s\n", statuses.RefCode)
-
 	if len(data.Statuses) == len(statuses.Statuses) {
-		log.Printf("%s\thas no updates :(\n", msg)
+		log.Printf("No updates in the package %s has no updates :(", statuses.RefCode)
 		return false, nil
 	}
-	msg += fmt.Sprintf("Has an update in its status\n")
 
 	if err := c.db.Delete(ctx); err != nil {
 		return false, fmt.Errorf("error deleting data: %w", err)
