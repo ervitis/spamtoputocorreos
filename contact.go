@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
+	"github.com/ervitis/spamtoputocorreos/models"
 	"mime/multipart"
 	"net/http"
 	"strconv"
@@ -14,8 +15,8 @@ const (
 	urlContact = "https://www.adtpostales.com/webauth/adtPostales/public/processContact"
 )
 
-func NewContactData() *ContactData {
-	return &ContactData{
+func NewContactData() *models.ContactData {
+	return &models.ContactData{
 		Name:               "Victor Martin",
 		Phone:              "685990843",
 		Email:              "vitomarti@gmail.com",
@@ -28,7 +29,7 @@ func NewContactData() *ContactData {
 	}
 }
 
-func Contact(client *http.Client, tokens *Tokens, contactData *ContactData) error {
+func Contact(client *http.Client, tokens *models.Tokens, contactData *models.ContactData) error {
 	form := map[string]string{
 		"_csrf":                tokens.Csrf,
 		"name":                 contactData.Name,

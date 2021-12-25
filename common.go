@@ -2,6 +2,7 @@ package spamtoputocorreos
 
 import (
 	"crypto/tls"
+	"github.com/ervitis/spamtoputocorreos/models"
 	"github.com/gocolly/colly"
 	"net/http"
 	"os"
@@ -13,7 +14,7 @@ import (
 var (
 	GlobalSignalHandler = make(chan os.Signal, 1)
 
-	DataToken *Tokens
+	DataToken *models.Tokens
 )
 
 func InitSignalHandler() {
@@ -39,8 +40,8 @@ func getParams(text string) (paramsMap map[string]string) {
 	return paramsMap
 }
 
-func GetTokens(c *colly.Collector) *Tokens {
-	token := new(Tokens)
+func GetTokens(c *colly.Collector) *models.Tokens {
+	token := new(models.Tokens)
 
 	c.OnHTML("input[type=hidden]", func(element *colly.HTMLElement) {
 		if element.Attr("name") == "_csrf" && token.Csrf == "" {

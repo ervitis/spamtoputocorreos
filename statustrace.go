@@ -2,7 +2,11 @@ package spamtoputocorreos
 
 import (
 	"bytes"
+	"context"
+	"fmt"
 	"github.com/PuerkitoBio/goquery"
+	"github.com/ervitis/spamtoputocorreos/models"
+	"github.com/ervitis/spamtoputocorreos/repo"
 	"github.com/gocolly/colly"
 	"log"
 	"net/http"
@@ -30,22 +34,24 @@ var (
 type (
 	CustomsStatusTrace struct {
 		scrapper *colly.Collector
+		db       repo.IRepository
 	}
 )
 
-func NewCustomsTracerService() *CustomsStatusTrace {
+func NewCustomsTracerService(db repo.IRepository) *CustomsStatusTrace {
 	return &CustomsStatusTrace{
 		scrapper: FactoryCollector(),
+		db:       db,
 	}
 }
 
-func (c *CustomsStatusTrace) GetStatus(tokens *Tokens, refCode string) (*StatusTrace, error) {
+func (c *CustomsStatusTrace) GetStatus(tokens *models.Tokens, refCode string) (*models.StatusTrace, error) {
 	form := make(map[string]string)
 	form["envio.numEnvio"] = refCode
 	form["tokenReCaptcha"] = tokens.Captcha
 	form["_csrf"] = tokens.Csrf
 
-	status := &StatusTrace{RefCode: refCode, Statuses: make([]*StatusData, 0)}
+	status := &models.StatusTrace{RefCode: refCode, Statuses: make([]*models.StatusData, 0)}
 
 	c.scrapper.OnRequest(func(request *colly.Request) {
 		err := c.scrapper.SetCookies(urlTrace, []*http.Cookie{
@@ -83,7 +89,7 @@ func (c *CustomsStatusTrace) GetStatus(tokens *Tokens, refCode string) (*StatusT
 					log.Fatal(err)
 				}
 
-				trace := &StatusData{
+				trace := &models.StatusData{
 					Date:   t,
 					Status: strings.TrimSpace(st[0]),
 					Detail: strings.TrimSpace(st[1]),
@@ -100,4 +106,35 @@ func (c *CustomsStatusTrace) GetStatus(tokens *Tokens, refCode string) (*StatusT
 	}
 
 	return status, nil
+}
+
+func (c *CustomsStatusTrace) SearchTracerUpdatesAndUpdatesDB() (bool, error) {
+	statuses, err := c.GetStatus(DataToken, CustomsData.RefCode)
+	if err != nil {
+		return false, fmt.Errorf("error getting status from customs web: %w", err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 25*time.Second)
+	defer cancel()
+
+	data, err := c.db.Get(ctx, statuses.RefCode)
+	if err != nil {
+		return false, fmt.Errorf("error getting data from db: %w", err)
+	}
+
+	msg := fmt.Sprintf("The package %s\n", statuses.RefCode)
+
+	if len(data.Statuses) == len(statuses.Statuses) {
+		log.Printf("%s\thas no updates :(\n", msg)
+		return false, nil
+	}
+	msg += fmt.Sprintf("Has an update in its status\n")
+
+	if err := c.db.Delete(ctx); err != nil {
+		return false, fmt.Errorf("error deleting data: %w", err)
+	}
+
+	if err := c.db.Save(ctx, statuses); err != nil {
+		return false, fmt.Errorf("error saving data: %w", err)
+	}
+	return true, nil
 }

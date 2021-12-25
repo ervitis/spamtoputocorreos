@@ -2,13 +2,13 @@ package repo
 
 import (
 	"context"
-	"github.com/ervitis/spamtoputocorreos"
+	"github.com/ervitis/spamtoputocorreos/models"
 )
 
 type (
 	IRepository interface {
-		Save(context.Context, *spamtoputocorreos.StatusTrace) error
-		Get(context.Context, string) (*spamtoputocorreos.StatusTrace, error)
+		Save(context.Context, *models.StatusTrace) error
+		Get(context.Context, string) (*models.StatusTrace, error)
 		Delete(context.Context) error
 	}
 )

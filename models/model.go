@@ -1,4 +1,4 @@
-package spamtoputocorreos
+package models
 
 import "time"
 

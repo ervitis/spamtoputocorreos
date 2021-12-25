@@ -1,7 +1,6 @@
 package bots
 
 import (
-	"context"
 	"fmt"
 	"github.com/ervitis/spamtoputocorreos"
 	"github.com/ervitis/spamtoputocorreos/repo"
@@ -119,38 +118,15 @@ func (t *TelegramBot) handleGetAllStatus(_ *tb.Message) {
 
 func (t *TelegramBot) handleSearchUpdatesAndNotify(_ *tb.Message) {
 	// check in database and notify if there is a new update
-	statuses, err := t.traceService.GetStatus(spamtoputocorreos.DataToken, spamtoputocorreos.CustomsData.RefCode)
+	hasUpdate, err := t.traceService.SearchTracerUpdatesAndUpdatesDB()
 	if err != nil {
-		t.registerError(err, "handleSSearchUpdatesAndNotify")
-		return
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 25*time.Second)
-	defer cancel()
-
-	data, err := t.db.Get(ctx, statuses.RefCode)
-	if err != nil {
-		t.registerError(err, "handleSearchUpdatesAndNotify get data from db")
+		t.registerError(err, "handleSearchUpdatesAndNotify")
 		return
 	}
 
-	msg := fmt.Sprintf("The package %s\n", statuses.RefCode)
-
-	if len(data.Statuses) == len(statuses.Statuses) {
-		log.Printf("%s\thas no updates :(\n", msg)
+	if !hasUpdate {
 		return
 	}
-	msg += fmt.Sprintf("Has an update in its status\n")
-
-	if err := t.db.Delete(ctx); err != nil {
-		t.registerError(err, "handleSearchUpdatesAndNotify deleting data in db when there is an update")
-		return
-	}
-
-	if err := t.db.Save(ctx, statuses); err != nil {
-		t.registerError(err, "handleSearchUpdatesAndNotify inserting new data")
-		return
-	}
-
 	t.handleGetLatestStatus(nil)
 }
 

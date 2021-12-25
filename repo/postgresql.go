@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/ervitis/spamtoputocorreos"
+	"github.com/ervitis/spamtoputocorreos/models"
 	_ "github.com/lib/pq"
 	"strings"
 	"time"
@@ -39,7 +39,7 @@ func New(params *DBParameters) IRepository {
 	}
 }
 
-func (p *postgresql) Save(ctx context.Context, statusTrace *spamtoputocorreos.StatusTrace) error {
+func (p *postgresql) Save(ctx context.Context, statusTrace *models.StatusTrace) error {
 	query := fmt.Sprintf(`INSERT INTO %s (refCode, status, detail, date) VALUES ($1, $2, $3, $4)`, p.cfg.TableName)
 
 	stmt, err := p.db.PrepareContext(ctx, query)
@@ -57,7 +57,7 @@ func (p *postgresql) Save(ctx context.Context, statusTrace *spamtoputocorreos.St
 	return nil
 }
 
-func (p *postgresql) Get(ctx context.Context, refID string) (*spamtoputocorreos.StatusTrace, error) {
+func (p *postgresql) Get(ctx context.Context, refID string) (*models.StatusTrace, error) {
 	query := fmt.Sprintf(`SELECT status, detail, date FROM %s WHERE refCode = $1`, p.cfg.TableName)
 
 	stmt, err := p.db.PrepareContext(ctx, query)
@@ -76,9 +76,9 @@ func (p *postgresql) Get(ctx context.Context, refID string) (*spamtoputocorreos.
 		}
 	}()
 
-	statusTraces := &spamtoputocorreos.StatusTrace{RefCode: refID, Statuses: make([]*spamtoputocorreos.StatusData, 0)}
+	statusTraces := &models.StatusTrace{RefCode: refID, Statuses: make([]*models.StatusData, 0)}
 	for rows.Next() {
-		var statusTrace spamtoputocorreos.StatusData
+		var statusTrace models.StatusData
 		if err := rows.Scan(&statusTrace.Status, &statusTrace.Detail, &statusTrace.Date); err != nil {
 			return nil, err
 		}
