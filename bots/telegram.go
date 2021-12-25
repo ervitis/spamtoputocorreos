@@ -54,6 +54,7 @@ func (t *TelegramBot) StartServer() error {
 	t.bot.Handle("/latest", t.handleGetLatestStatus)
 	t.bot.Handle("/all", t.handleGetAllStatus)
 	t.bot.Handle("/search", t.handleSearchUpdatesAndNotify)
+	t.bot.Handle("/help", t.handleHelp)
 
 	t.bot.Start()
 	return nil
@@ -65,6 +66,18 @@ func (t *TelegramBot) registerError(err error, msgDetail string) {
 	if err != nil {
 		log.Printf("I could not send the error message to telegram: %s\n", err)
 	}
+}
+
+func (t *TelegramBot) handleHelp(_ *tb.Message) {
+	helpMessage := `
+HELP COMMANDS:
+
+- /latest
+- /amialive
+- /all
+- /search
+`
+	_, _ = t.bot.Send(t.user, helpMessage)
 }
 
 func (t *TelegramBot) handleGetLatestStatus(_ *tb.Message) {
