@@ -122,7 +122,7 @@ func (c *CustomsStatusTrace) SearchTracerUpdatesAndUpdatesDB() (bool, error) {
 	}
 
 	if len(data.Statuses) == len(statuses.Statuses) {
-		log.Printf("No updates in the package %s has no updates :(", statuses.RefCode)
+		log.Printf("No updates in the package %s :(", statuses.RefCode)
 		return false, nil
 	}
 
