@@ -14,7 +14,12 @@ func init() {
 	repo.LoadDBConfig()
 	spamtoputocorreos.LoadTelegramConfig()
 	spamtoputocorreos.LoadCustomsData()
+	spamtoputocorreos.InitSignalHandler()
 }
+
+const (
+	tickerTimeDuration = 1 * time.Hour
+)
 
 func main() {
 	crawler := spamtoputocorreos.FactoryCollector()
@@ -35,7 +40,7 @@ func main() {
 		log.Panicln(err)
 	}
 
-	ticker := time.NewTicker(4 * time.Hour)
+	ticker := time.NewTicker(tickerTimeDuration)
 
 	go func() {
 		for {
