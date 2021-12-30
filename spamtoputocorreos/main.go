@@ -26,6 +26,9 @@ const (
 
 func main() {
 	crawler := spamtoputocorreos.FactoryCollector()
+
+	crawler.AllowURLRevisit = true
+
 	spamtoputocorreos.DataToken = new(models.Tokens)
 	spamtoputocorreos.GetTokens(crawler, spamtoputocorreos.DataToken)
 	spamtoputocorreos.DataToken.Captcha = spamtoputocorreos.CustomsData.Captcha
