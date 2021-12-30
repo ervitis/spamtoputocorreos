@@ -12,6 +12,7 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -122,7 +123,23 @@ func (c *CustomsStatusTrace) SearchTracerUpdatesAndUpdatesDB() (bool, error) {
 		return false, fmt.Errorf("error getting data from db: %w", err)
 	}
 
-	if len(data.Statuses) == len(statuses.Statuses) {
+	lenStatuses := len(statuses.Statuses)
+	lenData := len(data.Statuses)
+
+	if lenStatuses == lenData {
+		log.Printf("No updates in the package %s :(", statuses.RefCode)
+		return false, nil
+	}
+
+	sort.Slice(data.Statuses, func(i, j int) bool {
+		return data.Statuses[i].Date.After(data.Statuses[j].Date)
+	})
+
+	sort.Slice(statuses.Statuses, func(i, j int) bool {
+		return data.Statuses[i].Date.After(data.Statuses[j].Date)
+	})
+
+	if data.Statuses[lenData-1].Status == statuses.Statuses[lenStatuses-1].Status {
 		log.Printf("No updates in the package %s :(", statuses.RefCode)
 		return false, nil
 	}
