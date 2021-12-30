@@ -19,7 +19,8 @@ func init() {
 }
 
 const (
-	tickerTimeDuration = 1 * time.Hour
+	tickerTimeDuration        = 1 * time.Hour
+	tickerTimeSessionDuration = 26 * time.Minute
 )
 
 func main() {
@@ -43,6 +44,7 @@ func main() {
 	}
 
 	ticker := time.NewTicker(tickerTimeDuration)
+	tickerRenovateSession := time.NewTicker(tickerTimeSessionDuration)
 
 	go func() {
 		for {
@@ -57,6 +59,19 @@ func main() {
 				if hasUpdate {
 					_ = tb.SendNotification(fmt.Sprintf("Tick at %s. There is a new update! type the command `/latest` to see latest information", t))
 				}
+			}
+		}
+	}()
+
+	go func() {
+		for {
+			select {
+			case <-spamtoputocorreos.GlobalSignalHandler:
+				return
+			case t := <-tickerRenovateSession.C:
+				log.Println("Renovate session tokens at ", t)
+				spamtoputocorreos.DataToken = spamtoputocorreos.GetTokens(crawler)
+				log.Printf("New session token %s and csrf %s", spamtoputocorreos.DataToken.Session, spamtoputocorreos.DataToken.Csrf)
 			}
 		}
 	}()
