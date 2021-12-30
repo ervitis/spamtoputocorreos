@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/ervitis/spamtoputocorreos"
 	"github.com/ervitis/spamtoputocorreos/bots"
+	"github.com/ervitis/spamtoputocorreos/models"
 	"github.com/ervitis/spamtoputocorreos/repo"
 	"log"
 	"os"
@@ -19,13 +20,14 @@ func init() {
 }
 
 const (
-	tickerTimeDuration        = 1 * time.Hour
+	tickerTimeDuration        = 57 * time.Minute
 	tickerTimeSessionDuration = 26 * time.Minute
 )
 
 func main() {
 	crawler := spamtoputocorreos.FactoryCollector()
-	spamtoputocorreos.DataToken = spamtoputocorreos.GetTokens(crawler)
+	spamtoputocorreos.DataToken = new(models.Tokens)
+	spamtoputocorreos.GetTokens(crawler, spamtoputocorreos.DataToken)
 	spamtoputocorreos.DataToken.Captcha = spamtoputocorreos.CustomsData.Captcha
 
 	db := repo.New(&repo.DBConfig)
@@ -70,7 +72,7 @@ func main() {
 				return
 			case t := <-tickerRenovateSession.C:
 				log.Println("Renovate session tokens at ", t)
-				spamtoputocorreos.DataToken = spamtoputocorreos.GetTokens(crawler)
+				spamtoputocorreos.GetTokens(crawler, spamtoputocorreos.DataToken)
 				log.Printf("New session token %s and csrf %s", spamtoputocorreos.DataToken.Session, spamtoputocorreos.DataToken.Csrf)
 			}
 		}
