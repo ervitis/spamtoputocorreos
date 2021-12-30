@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/ervitis/spamtoputocorreos/models"
+	"github.com/ervitis/spamtoputocorreos/regtools"
 	"github.com/ervitis/spamtoputocorreos/repo"
 	"github.com/gocolly/colly"
 	"log"
@@ -82,7 +83,7 @@ func (c *CustomsStatusTrace) GetStatus(tokens *models.Tokens, refCode string) (*
 		doc.Find(`#listadoTraza tbody`).Each(func(i int, selection *goquery.Selection) {
 			selection.Find("tr").Each(func(j int, line *goquery.Selection) {
 				text := strings.TrimSpace(strings.ReplaceAll(strings.ReplaceAll(line.Text(), "\n", ""), "\t", ""))
-				data := getParams(text)
+				data := regtools.GetParams(reg, text)
 				st := strings.Split(data["Status"], splitSpaces)
 				t, err := time.Parse(dateFormatTraceLayout, data["Date"])
 				if err != nil {

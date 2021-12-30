@@ -1,14 +1,11 @@
 package spamtoputocorreos
 
 import (
-	"crypto/tls"
 	"github.com/ervitis/spamtoputocorreos/models"
 	"github.com/gocolly/colly"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 )
 
 var (
@@ -19,25 +16,6 @@ var (
 
 func InitSignalHandler() {
 	signal.Notify(GlobalSignalHandler, syscall.SIGTERM, os.Interrupt)
-}
-
-func NewClient() *http.Client {
-	return &http.Client{
-		Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}},
-		Timeout:   15 * time.Second,
-	}
-}
-
-func getParams(text string) (paramsMap map[string]string) {
-	match := reg.FindStringSubmatch(text)
-
-	paramsMap = make(map[string]string)
-	for i, name := range reg.SubexpNames() {
-		if i > 0 && i <= len(match) {
-			paramsMap[name] = match[i]
-		}
-	}
-	return paramsMap
 }
 
 func GetTokens(c *colly.Collector) *models.Tokens {

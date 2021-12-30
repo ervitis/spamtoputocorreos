@@ -37,7 +37,7 @@ func (s *Server) Start() {
 	}
 
 	go func(server *http.Server) {
-		log.Panic(server.ListenAndServe())
+		_ = server.ListenAndServe()
 	}(server)
 
 	<-GlobalSignalHandler

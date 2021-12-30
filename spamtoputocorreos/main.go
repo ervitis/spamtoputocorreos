@@ -15,6 +15,7 @@ func init() {
 	spamtoputocorreos.LoadTelegramConfig()
 	spamtoputocorreos.LoadCustomsData()
 	spamtoputocorreos.InitSignalHandler()
+	spamtoputocorreos.LoadContactData()
 }
 
 const (
@@ -34,8 +35,9 @@ func main() {
 	}
 
 	svc := spamtoputocorreos.NewCustomsTracerService(db)
+	csvc := spamtoputocorreos.NewContactService()
 
-	tb, err := bots.NewTelegramBot(&spamtoputocorreos.TelegramConfig, svc, db)
+	tb, err := bots.NewTelegramBot(&spamtoputocorreos.TelegramConfig, csvc, svc, db)
 	if err != nil {
 		log.Panicln(err)
 	}

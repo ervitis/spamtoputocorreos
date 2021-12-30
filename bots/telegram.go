@@ -3,24 +3,27 @@ package bots
 import (
 	"fmt"
 	"github.com/ervitis/spamtoputocorreos"
+	"github.com/ervitis/spamtoputocorreos/models"
 	"github.com/ervitis/spamtoputocorreos/repo"
 	tb "gopkg.in/tucnak/telebot.v2"
 	"log"
 	"sort"
+	"strings"
 	"time"
 )
 
 type (
 	// TelegramBot represents a Telegram bot.
 	TelegramBot struct {
-		user         *tb.User
-		bot          *tb.Bot
-		traceService *spamtoputocorreos.CustomsStatusTrace
-		db           repo.IRepository
+		user           *tb.User
+		bot            *tb.Bot
+		traceService   *spamtoputocorreos.CustomsStatusTrace
+		contactService *spamtoputocorreos.ContactService
+		db             repo.IRepository
 	}
 )
 
-func NewTelegramBot(cfg *spamtoputocorreos.TelegramParams, traceService *spamtoputocorreos.CustomsStatusTrace, db repo.IRepository) (*TelegramBot, error) {
+func NewTelegramBot(cfg *spamtoputocorreos.TelegramParams, contactService *spamtoputocorreos.ContactService, traceService *spamtoputocorreos.CustomsStatusTrace, db repo.IRepository) (*TelegramBot, error) {
 	b, err := tb.NewBot(tb.Settings{
 		Token:  cfg.Token,
 		Poller: &tb.LongPoller{Timeout: 10 * time.Second},
@@ -30,10 +33,11 @@ func NewTelegramBot(cfg *spamtoputocorreos.TelegramParams, traceService *spamtop
 	}
 
 	return &TelegramBot{
-		bot:          b,
-		traceService: traceService,
-		db:           db,
-		user:         &tb.User{ID: cfg.UserID},
+		bot:            b,
+		traceService:   traceService,
+		contactService: contactService,
+		db:             db,
+		user:           &tb.User{ID: cfg.UserID},
 	}, nil
 }
 
@@ -55,6 +59,7 @@ func (t *TelegramBot) StartServer() error {
 	t.bot.Handle("/all", t.handleGetAllStatus)
 	t.bot.Handle("/search", t.handleSearchUpdatesAndNotify)
 	t.bot.Handle("/help", t.handleHelp)
+	t.bot.Handle("/submit", t.handleSendQueryContact)
 
 	t.bot.Start()
 	return nil
@@ -69,14 +74,23 @@ func (t *TelegramBot) registerError(err error, msgDetail string) {
 }
 
 func (t *TelegramBot) handleHelp(_ *tb.Message) {
-	helpMessage := `
+	var dt models.InquiryDescriptionType
+	var ct models.InquiryCategoryType
+
+	helpMessage := fmt.Sprintf(`
 HELP COMMANDS:
 
 - /latest
 - /amialive
 - /all
 - /search
-`
+- /submit <message>. The <message> field has to follow this format:
+	<inquiry_category>-<inquiry_description>-<content>
+	<inquiry_category> can be %s (TBD)
+	<inquiry_description> can be
+		ENVIOS: %s
+	<content> inquiry content of message
+`, strings.Join(ct.All(), ","), strings.Join(dt.All(), ","))
 	_, _ = t.bot.Send(t.user, helpMessage)
 }
 
@@ -148,4 +162,25 @@ func (t *TelegramBot) handleHealthCheck(_ *tb.Message) {
 	if err != nil {
 		log.Printf("error sending message in healthcheck %s\n", err)
 	}
+}
+
+func (t *TelegramBot) handleSendQueryContact(m *tb.Message) {
+	inquiryBody := &models.InquiryBodyData{}
+	var err error
+	inquiryBody, err = inquiryBody.Marshal(m.Payload)
+	if err != nil {
+		log.Println("Error handling contact to customs in message", err)
+		_, _ = t.bot.Send(t.user, "An error happened sending the query to customs: %s", err)
+		return
+	}
+
+	contactData := spamtoputocorreos.NewContactData(inquiryBody)
+
+	if err := t.contactService.Contact(spamtoputocorreos.DataToken, contactData); err != nil {
+		log.Println("Error in contact service", err)
+		_, _ = t.bot.Send(t.user, fmt.Sprintf("An error happened sending the query to customs: %s", err))
+		return
+	}
+
+	_, _ = t.bot.Send(t.user, fmt.Sprintf("Message to customs sent. Data sent: %s", inquiryBody.String()))
 }
