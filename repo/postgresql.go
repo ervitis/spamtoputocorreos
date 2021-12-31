@@ -40,7 +40,7 @@ func New(params *DBParameters) IRepository {
 }
 
 func (p *postgresql) Save(ctx context.Context, statusTrace *models.StatusTrace) error {
-	query := fmt.Sprintf(`INSERT INTO %s (refCode, status, detail, date) VALUES ($1, $2, $3, $4)`, p.cfg.TableName)
+	query := fmt.Sprintf(`INSERT INTO %s (refCode, status, detail, date) VALUES ($1, $2, $3, $4) ON CONFLICT (refCode, date) DO UPDATE SET status = EXCLUDED.status, detail = EXCLUDED.detail`, p.cfg.TableName)
 
 	stmt, err := p.db.PrepareContext(ctx, query)
 	if err != nil {

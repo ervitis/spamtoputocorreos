@@ -131,21 +131,33 @@ func (c *CustomsStatusTrace) SearchTracerUpdatesAndUpdatesDB() (bool, error) {
 		return false, nil
 	}
 
-	sort.Slice(data.Statuses, func(i, j int) bool {
-		return data.Statuses[i].Date.After(data.Statuses[j].Date)
-	})
+	log.Printf("There is a new update for the package\n")
 
-	sort.Slice(statuses.Statuses, func(i, j int) bool {
-		return data.Statuses[i].Date.After(data.Statuses[j].Date)
-	})
-
-	if data.Statuses[lenData-1].Status == statuses.Statuses[lenStatuses-1].Status {
-		log.Printf("No updates in the package %s :(", statuses.RefCode)
-		return false, nil
+	if lenData > 0 {
+		sort.Slice(data.Statuses, func(i, j int) bool {
+			return data.Statuses[i].Date.After(data.Statuses[j].Date)
+		})
 	}
 
-	if err := c.db.Delete(ctx); err != nil {
-		return false, fmt.Errorf("error deleting data: %w", err)
+	if lenStatuses > 0 {
+		sort.Slice(statuses.Statuses, func(i, j int) bool {
+			return statuses.Statuses[i].Date.After(statuses.Statuses[j].Date)
+		})
+	}
+
+	indexData := 0
+	if lenData > 0 {
+		indexData = lenData - 1
+	}
+
+	indexStatuses := 0
+	if lenStatuses > 0 {
+		indexStatuses = lenStatuses - 1
+	}
+
+	if indexData > 0 && indexStatuses > 0 && data.Statuses[indexData].Status == statuses.Statuses[indexStatuses].Status {
+		log.Printf("No updates in the package %s :(", statuses.RefCode)
+		return false, nil
 	}
 
 	if err := c.db.Save(ctx, statuses); err != nil {
