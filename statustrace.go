@@ -126,13 +126,6 @@ func (c *CustomsStatusTrace) SearchTracerUpdatesAndUpdatesDB() (bool, error) {
 	lenStatuses := len(statuses.Statuses)
 	lenData := len(data.Statuses)
 
-	if lenStatuses == lenData {
-		log.Printf("No updates in the package %s :(", statuses.RefCode)
-		return false, nil
-	}
-
-	log.Printf("There is a new update for the package\n")
-
 	if lenData > 0 {
 		sort.Slice(data.Statuses, func(i, j int) bool {
 			return data.Statuses[i].Date.After(data.Statuses[j].Date)
@@ -155,10 +148,12 @@ func (c *CustomsStatusTrace) SearchTracerUpdatesAndUpdatesDB() (bool, error) {
 		indexStatuses = lenStatuses - 1
 	}
 
-	if indexData > 0 && indexStatuses > 0 && data.Statuses[indexData].Status == statuses.Statuses[indexStatuses].Status {
+	if indexData > 0 && indexStatuses > 0 && data.Statuses[indexData].Date.After(statuses.Statuses[indexStatuses].Date) {
 		log.Printf("No updates in the package %s :(", statuses.RefCode)
 		return false, nil
 	}
+
+	log.Printf("There is a new update for the package\n")
 
 	if err := c.db.Save(ctx, statuses); err != nil {
 		return false, fmt.Errorf("error saving data: %w", err)
