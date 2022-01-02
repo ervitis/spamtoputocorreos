@@ -153,6 +153,8 @@ func (c *CustomsStatusTrace) SearchTracerUpdatesAndUpdatesDB() (bool, error) {
 		indexStatuses = lenStatuses - 1
 	}
 
+	log.Printf("indexes statuses %d, data %d. Len statuses %d, data %d", indexStatuses, indexData, lenStatuses, lenData)
+
 	if indexData > 0 && indexStatuses > 0 && data.Statuses[indexData].Date.After(statuses.Statuses[indexStatuses].Date) {
 		log.Printf("No updates in the package %s :(", statuses.RefCode)
 		return false, nil
