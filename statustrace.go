@@ -38,9 +38,14 @@ type (
 		scrapper *colly.Collector
 		db       repo.IRepository
 	}
+
+	ICustomsStatus interface {
+		GetStatus(*models.Tokens, string) (*models.StatusTrace, error)
+		SearchTracerUpdatesAndUpdatesDB() (bool, error)
+	}
 )
 
-func NewCustomsTracerService(db repo.IRepository) *CustomsStatusTrace {
+func NewCustomsTracerService(db repo.IRepository) ICustomsStatus {
 	return &CustomsStatusTrace{
 		scrapper: FactoryCollector(),
 		db:       db,

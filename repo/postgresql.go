@@ -58,7 +58,7 @@ func (p *postgresql) Save(ctx context.Context, statusTrace *models.StatusTrace) 
 }
 
 func (p *postgresql) Get(ctx context.Context, refID string) (*models.StatusTrace, error) {
-	query := fmt.Sprintf(`SELECT status, detail, date FROM %s WHERE refCode = $1`, p.cfg.TableName)
+	query := fmt.Sprintf(`SELECT status, detail, date FROM %s WHERE refCode = $1 ORDER BY date DESC`, p.cfg.TableName)
 
 	stmt, err := p.db.PrepareContext(ctx, query)
 	if err != nil {
