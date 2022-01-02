@@ -22,7 +22,7 @@ const (
 	urlTrace = "https://www.adtpostales.com/webauth/adtPostales/public/seguimientoEnvio"
 	urlHome  = "https://www.adtpostales.com/webauth/adtPostales/"
 
-	dateFormatTraceLayout = "2/01/2006 15:04:05"
+	dateFormatTraceLayout = "2/01/2006 15:04:05 -0700"
 
 	regexPattern = `(?P<Date>\d{1,2}\/\d{1,2}\/\d{4}\s\d{1,2}:\d{2}:\d{2})\s+(?P<Status>.*)`
 
@@ -91,6 +91,7 @@ func (c *CustomsStatusTrace) GetStatus(tokens *models.Tokens, refCode string) (*
 				text := strings.TrimSpace(strings.ReplaceAll(strings.ReplaceAll(line.Text(), "\n", ""), "\t", ""))
 				data := regtools.GetParams(reg, text)
 				st := strings.Split(data["Status"], splitSpaces)
+				data["Date"] = fmt.Sprintf("%s +0000", data["Date"])
 				t, err := time.Parse(dateFormatTraceLayout, data["Date"])
 				if err != nil {
 					log.Fatal(err)
