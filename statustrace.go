@@ -134,13 +134,13 @@ func (c *CustomsStatusTrace) SearchTracerUpdatesAndUpdatesDB() (bool, error) {
 
 	if lenData > 0 {
 		sort.Slice(data.Statuses, func(i, j int) bool {
-			return data.Statuses[i].Date.After(data.Statuses[j].Date)
+			return data.Statuses[i].Date.Before(data.Statuses[j].Date)
 		})
 	}
 
 	if lenStatuses > 0 {
 		sort.Slice(statuses.Statuses, func(i, j int) bool {
-			return statuses.Statuses[i].Date.After(statuses.Statuses[j].Date)
+			return statuses.Statuses[i].Date.Before(statuses.Statuses[j].Date)
 		})
 	}
 
@@ -154,25 +154,12 @@ func (c *CustomsStatusTrace) SearchTracerUpdatesAndUpdatesDB() (bool, error) {
 		indexStatuses = lenStatuses - 1
 	}
 
-	log.Printf("indexes statuses %d, data %d. Len statuses %d, data %d", indexStatuses, indexData, lenStatuses, lenData)
-
-	for _, v := range statuses.Statuses {
-		log.Printf("statuses date %s", v.Date.Format(time.RFC822))
-	}
-
-	for _, v := range data.Statuses {
-		log.Printf("data db date %s", v.Date.Format(time.RFC822))
-	}
-
-	if indexData > 0 && indexStatuses > 0 && data.Statuses[indexData].Date.After(statuses.Statuses[indexStatuses].Date) {
+	if indexData > 0 &&
+		indexStatuses > 0 &&
+		data.Statuses[indexData].Date.Equal(statuses.Statuses[indexStatuses].Date) {
 		log.Printf("No updates in the package %s :(", statuses.RefCode)
 		return false, nil
 	}
-
-	log.Printf("latest date from data %s, latest date from scrap %s", data.Statuses[indexData].Date.Format(time.RFC3339), statuses.Statuses[indexStatuses].Date.Format(time.RFC3339))
-	log.Printf("after? %v", data.Statuses[indexData].Date.After(statuses.Statuses[indexStatuses].Date))
-	log.Printf("equal? %v", data.Statuses[indexData].Date.Equal(statuses.Statuses[indexStatuses].Date))
-	log.Printf("There is a new update for the package\n")
 
 	if err := c.db.Save(ctx, statuses); err != nil {
 		return false, fmt.Errorf("error saving data: %w", err)
