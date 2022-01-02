@@ -17,13 +17,13 @@ type (
 	TelegramBot struct {
 		user           *tb.User
 		bot            *tb.Bot
-		traceService   *spamtoputocorreos.CustomsStatusTrace
+		traceService   spamtoputocorreos.ICustomsStatus
 		contactService *spamtoputocorreos.ContactService
 		db             repo.IRepository
 	}
 )
 
-func NewTelegramBot(cfg *spamtoputocorreos.TelegramParams, contactService *spamtoputocorreos.ContactService, traceService *spamtoputocorreos.CustomsStatusTrace, db repo.IRepository) (*TelegramBot, error) {
+func NewTelegramBot(cfg *spamtoputocorreos.TelegramParams, contactService *spamtoputocorreos.ContactService, traceService spamtoputocorreos.ICustomsStatus, db repo.IRepository) (*TelegramBot, error) {
 	b, err := tb.NewBot(tb.Settings{
 		Token:  cfg.Token,
 		Poller: &tb.LongPoller{Timeout: 10 * time.Second},
