@@ -170,6 +170,7 @@ func (c *CustomsStatusTrace) SearchTracerUpdatesAndUpdatesDB() (bool, error) {
 
 	log.Printf("latest date from data %s, latest date from scrap %s", data.Statuses[indexData].Date.Format(time.RFC3339), statuses.Statuses[indexStatuses].Date.Format(time.RFC3339))
 	log.Printf("after? %v", data.Statuses[indexData].Date.After(statuses.Statuses[indexStatuses].Date))
+	log.Printf("equal? %v", data.Statuses[indexData].Date.Equal(statuses.Statuses[indexStatuses].Date))
 	log.Printf("There is a new update for the package\n")
 
 	if err := c.db.Save(ctx, statuses); err != nil {
