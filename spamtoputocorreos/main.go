@@ -20,7 +20,7 @@ func init() {
 }
 
 const (
-	tickerTimeDuration        = 59 * time.Minute
+	tickerTimeDuration        = 23 * time.Minute
 	tickerTimeSessionDuration = 57 * time.Minute
 )
 
